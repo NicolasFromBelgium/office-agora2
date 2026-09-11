@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ task.title }} · {{ project.name }}{% endblock %}
+{% block content %}
+{% include "projects/_header.html" %}
+<div class="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-3">
+  <section class="lg:col-span-2">
+    <form method="post" action="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id) }}" class="compose-issue">
+      <div class="compose-main">
+        <p class="compose-kicker">Tâche</p>
+        <label for="title" class="compose-label">Résumé</label>
+        <input id="title" name="title" required value="{{ task.title }}" class="compose-summary" />
+        <label for="description" class="compose-label">Description</label>
+        <textarea id="description" name="description" rows="8" class="compose-notes">{{ task.description }}</textarea>
+      </div>
+      <aside class="compose-side">
+        <div>
+          <label for="status" class="compose-label">Statut</label>
+          <select id="status" name="status" class="compose-field">
+            {% for status in TASK_STATUSES %}
+            <option value="{{ status.value }}" {% if task.status == status.value %}selected{% endif %}>{{ STATUS_LABELS[status] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="assignee_id" class="compose-label">Responsable</label>
+          <select id="assignee_id" name="assignee_id" class="compose-field">
+            <option value="">Non assigné</option>
+            {% for member in project.members %}
+            <option value="{{ member.user.id }}" {% if task.assignee_id == member.user.id %}selected{% endif %}>{{ member.user.display_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="due_date" class="compose-label">Échéance</label>
+          <input id="due_date" name="due_date" type="date" value="{{ task.due_at|date_input }}" class="compose-field" />
+        </div>
+        <div>
+          <label for="due_time" class="compose-label">Heure</label>
+          <input id="due_time" name="due_time" type="time" value="{{ task.due_at|time_input(true) }}" class="compose-field" />
+        </div>
+        <button type="submit" class="compose-submit w-full">Enregistrer</button>
+      </aside>
+    </form>
+    <div class="mt-2">
+      {% set action = '/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/like' %}
+      {% set liked = current_user.id in task.likes|map(attribute='user_id')|list %}
+      {% set count = task.likes|length %}
+      {% set names = task.likes|map(attribute='user')|map(attribute='display_name')|list %}
+      {% include "partials/like_button.html" %}
+    </div>
+    <form
+      method="post"
+      action="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/delete') }}"
+      class="mt-3"
+      onsubmit="return confirm('Supprimer cette tâche, ses commentaires et ses fichiers ?');"
+    >
+      <input type="hidden" name="next" value="/projects/{{ project.id }}/board" />
+      <button type="submit" class="danger-link">Supprimer la tâche</button>
+    </form>
+
+    <section class="mt-6" aria-labelledby="task-files-heading">
+      <h2 id="task-files-heading" class="text-sm font-semibold">Fichiers</h2>
+      <form method="post" action="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/files') }}" enctype="multipart/form-data" class="mt-2 flex flex-wrap items-end gap-2">
+        <input id="task-file" name="file" type="file" required class="text-sm" />
+        <button type="submit" class="rounded border border-line px-3 py-1.5 text-sm hover:border-accent">Envoyer</button>
+      </form>
+      {% if task.files %}
+      <ul class="mt-3 divide-y divide-line rounded border border-line bg-card">
+        {% for item in task.files %}
+        <li class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+          <span class="flex min-w-0 items-center gap-2">
+            {% include "partials/file_thumb.html" %}
+            <a href="{{ u('/projects/' ~ project.id ~ '/files/' ~ item.id) }}" class="truncate hover:text-accent">{{ item.original_filename }}</a>
+          </span>
+          <span class="flex items-center gap-3">
+            <span class="text-xs text-muted">{{ item.created_at|dt }}</span>
+            <form
+              method="post"
+              action="{{ u('/projects/' ~ project.id ~ '/files/' ~ item.id ~ '/delete') }}"
+              onsubmit="return confirm('Supprimer ce fichier ?');"
+            >
+              <input type="hidden" name="next" value="/projects/{{ project.id }}/tasks/{{ task.id }}" />
+              <button type="submit" class="danger-link">Supprimer</button>
+            </form>
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="mt-3 text-sm text-muted">Aucun fichier sur cette tâche.</p>
+      {% endif %}
+    </section>
+
+    <section class="mt-6" aria-labelledby="task-comments-heading">
+      <h2 id="task-comments-heading" class="text-sm font-semibold">Commentaires</h2>
+      {% include "partials/task_comments.html" %}
+      <form
+        method="post"
+        action="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/comments') }}"
+        class="mt-3"
+        hx-post="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/comments') }}"
+        hx-target="#task-comments"
+        hx-swap="outerHTML"
+        hx-on::after-request="if(event.detail.successful) this.reset()"
+      >
+        <label for="comment-body" class="block text-xs text-muted">Ajouter un commentaire</label>
+        <textarea
+          id="comment-body"
+          name="body"
+          rows="3"
+          required
+          maxlength="4000"
+          placeholder="Une note pour l’équipe…"
+          class="comment-input mt-1 w-full rounded border border-line bg-paper px-3 py-2 text-sm"
+        ></textarea>
+        <button type="submit" class="mt-2 rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover">Publier</button>
+      </form>
+    </section>
+  </section>
+
+  <aside>
+    <h2 class="text-sm font-semibold">Historique</h2>
+    {% if logs %}
+    <ol class="mt-2 space-y-2">
+      {% for entry in logs %}
+      <li class="rounded border border-line bg-card px-3 py-2">
+        <p class="text-sm">{{ describe_activity(entry) }}</p>
+        <p class="text-xs text-muted">{{ entry.created_at|dt }}</p>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="mt-2 text-sm text-muted">Pas encore d’historique.</p>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

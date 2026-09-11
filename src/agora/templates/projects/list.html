@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} · Liste{% endblock %}
+{% block content %}
+{% include "projects/_header.html" %}
+<div class="mx-auto max-w-7xl px-4 py-4">
+  <div class="mb-4 flex items-center justify-end">
+    <button
+      type="button"
+      class="rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+      onclick="agoraCompose({ kind: 'task', status: 'todo' })"
+    >Nouvelle tâche</button>
+  </div>
+
+  {% if tasks %}
+  <div class="overflow-x-auto rounded border border-line bg-card">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-line text-xs text-muted">
+        <tr>
+          <th class="px-3 py-2 font-medium">Titre</th>
+          <th class="px-3 py-2 font-medium">Statut</th>
+          <th class="px-3 py-2 font-medium">Assigné à</th>
+          <th class="px-3 py-2 font-medium">Échéance</th>
+          <th class="px-3 py-2 font-medium">Fichiers</th>
+          <th class="px-3 py-2 font-medium">Comm.</th>
+          <th class="px-3 py-2 font-medium">Mis à jour</th>
+          <th class="px-3 py-2 font-medium"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line">
+        {% for task in tasks %}
+        <tr>
+          <td class="px-3 py-2">
+            <a href="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id) }}" class="font-medium hover:text-accent">{{ task.title }}</a>
+          </td>
+          <td class="px-3 py-2">
+            <form method="post" action="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/status') }}">
+              <input type="hidden" name="next" value="{{ u('/projects/' ~ project.id ~ '/list') }}" />
+              <label class="sr-only" for="list-status-{{ task.id }}">Statut</label>
+              <select id="list-status-{{ task.id }}" name="status" class="rounded border border-line bg-paper px-1.5 py-1 text-xs" onchange="this.form.requestSubmit()">
+                {% for status in TASK_STATUSES %}
+                <option value="{{ status.value }}" {% if task.status == status.value %}selected{% endif %}>{{ STATUS_LABELS[status] }}</option>
+                {% endfor %}
+              </select>
+            </form>
+          </td>
+          <td class="px-3 py-2">{{ task.assignee.display_name if task.assignee else "—" }}</td>
+          <td class="px-3 py-2{% if task.due_at|overdue(task.status) %} due-overdue{% endif %}">{% if task.due_at %}{{ task.due_at|due }}{% else %}—{% endif %}</td>
+          <td class="px-3 py-2 text-muted">{{ task.files|length }}</td>
+          <td class="px-3 py-2 text-muted">{{ task.comments|length }}</td>
+          <td class="px-3 py-2 text-muted">{{ task.updated_at|dt }}</td>
+          <td class="px-3 py-2">
+            <form
+              method="post"
+              action="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/delete') }}"
+              onsubmit="return confirm('Supprimer cette tâche, ses commentaires et ses fichiers ?');"
+            >
+              <input type="hidden" name="next" value="/projects/{{ project.id }}/list" />
+              <button type="submit" class="danger-link">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="rounded border border-dashed border-line bg-card px-4 py-10 text-center">
+    <p class="text-sm text-muted">Aucune tâche sur ce projet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

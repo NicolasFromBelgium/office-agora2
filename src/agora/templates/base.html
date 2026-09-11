@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Office Agora{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              paper: "#f3f0ff",
+              ink: "#1e1b4b",
+              muted: "#64748b",
+              line: "#ddd6fe",
+              card: "#ffffff",
+              live: "#06b6d4",
+              accent: { DEFAULT: "#7c3aed", hover: "#6d28d9" },
+            },
+            fontFamily: {
+              sans: ["Plus Jakarta Sans", "ui-sans-serif", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.3/dist/cdn.min.js"></script>
+    <script>
+      window.__agoraComposeQ = window.__agoraComposeQ || [];
+      window.agoraCompose = function (detail) {
+        window.__agoraComposeQ.push(detail || {});
+      };
+    </script>
+    <link rel="stylesheet" href="{{ u('/static/app.css') }}" />
+    <script src="{{ u('/static/compose.js') }}" defer></script>
+  </head>
+  <body class="min-h-screen bg-paper font-sans text-ink antialiased">
+    <a class="skip-link" href="#main">Aller au contenu</a>
+    {% if current_user %}
+    <header class="sticky top-0 z-20 border-b border-line bg-card/95 backdrop-blur">
+      <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-2.5">
+        <a href="{{ u('/') }}" class="flex items-center gap-2 shrink-0" aria-label="Accueil Office Agora">
+          <span class="brand-mark inline-flex h-7 w-7 items-center justify-center rounded text-[11px] font-semibold tracking-wide text-white">OA</span>
+          <span class="text-sm font-semibold tracking-tight">Office Agora</span>
+        </a>
+
+        <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+          <button
+            type="button"
+            class="flex items-center gap-2 rounded border border-line bg-paper px-2.5 py-1.5 text-sm hover:border-accent focus-visible:outline-none"
+            @click="open = !open"
+            :aria-expanded="open.toString()"
+            aria-haspopup="listbox"
+          >
+            <span class="max-w-[12rem] truncate">{{ project.name if project is defined and project else "Projets" }}</span>
+            <span class="text-muted" aria-hidden="true">▾</span>
+          </button>
+          <ul
+            x-show="open"
+            x-cloak
+            @click.outside="open = false"
+            class="absolute left-0 mt-1 w-64 rounded border border-line bg-card py-1 shadow-sm"
+            role="listbox"
+          >
+            {% for item in projects %}
+            <li>
+              <a href="{{ u('/projects/' ~ item.id ~ '/board') }}" class="block px-3 py-1.5 text-sm hover:bg-paper">{{ item.name }}</a>
+            </li>
+            {% else %}
+            <li class="px-3 py-2 text-sm text-muted">Aucun projet</li>
+            {% endfor %}
+            <li class="mt-1 border-t border-line">
+              <a href="{{ u('/projects/new') }}" class="block px-3 py-1.5 text-sm text-accent hover:bg-paper">Nouveau projet</a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="ml-auto flex items-center gap-4">
+          {% include "partials/presence.html" %}
+
+          <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+            <button
+              type="button"
+              class="notif-bell"
+              @click="open = !open"
+              :aria-expanded="open.toString()"
+              aria-haspopup="true"
+              aria-label="Notifications"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5" />
+                <path d="M9.5 17a2.5 2.5 0 0 0 5 0" />
+              </svg>
+              {% include "partials/notif_badge.html" %}
+            </button>
+            <div
+              id="notif-panel"
+              x-show="open"
+              x-cloak
+              @click.outside="open = false"
+              class="notif-dropdown"
+              role="menu"
+              aria-label="Notifications"
+            >
+              {% include "partials/notifications.html" %}
+            </div>
+          </div>
+
+          <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+            <button
+              type="button"
+              class="flex items-center gap-2 rounded px-1.5 py-1 text-sm hover:bg-paper focus-visible:outline-none"
+              @click="open = !open"
+              :aria-expanded="open.toString()"
+            >
+              {% with who = current_user, size = 'md' %}{% include "partials/avatar.html" %}{% endwith %}
+              <span class="hidden sm:inline">{{ current_user.display_name }}</span>
+            </button>
+            <div x-show="open" x-cloak @click.outside="open = false" class="absolute right-0 mt-1 w-64 rounded border border-line bg-card p-2 shadow-sm">
+              <div class="flex items-center gap-2 px-2 py-1">
+                {% with who = current_user, size = 'profile' %}{% include "partials/avatar.html" %}{% endwith %}
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-medium">{{ current_user.display_name }}</p>
+                  <p class="truncate text-xs text-muted">{{ current_user.email }}</p>
+                </div>
+              </div>
+              <form
+                method="post"
+                action="{{ u('/me/avatar') }}"
+                enctype="multipart/form-data"
+                class="mt-2 px-2"
+              >
+                <label for="avatar-file" class="block text-xs text-muted">Photo de profil</label>
+                <input id="avatar-file" name="file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" required class="mt-1 w-full text-xs" />
+                <button type="submit" class="mt-1.5 w-full rounded border border-line px-2 py-1 text-xs hover:border-accent">Enregistrer</button>
+              </form>
+              {% if current_user.avatar_name %}
+              <form method="post" action="{{ u('/me/avatar/delete') }}" class="px-2 pt-1">
+                <button type="submit" class="danger-link">Retirer la photo</button>
+              </form>
+              {% endif %}
+              <a href="{{ u('/home') }}" class="mt-2 block rounded px-2 py-1.5 text-sm hover:bg-paper">Tous les projets</a>
+              <form method="post" action="{{ u('/logout') }}">
+                <button type="submit" class="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-paper">Se déconnecter</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    {% endif %}
+
+    <main id="main">
+      {% if flash %}
+      <div class="mx-auto max-w-7xl px-4 pt-3" role="status">
+        <p class="rounded border px-3 py-2 text-sm {% if flash.category == 'error' %}border-red-300 bg-red-50 text-red-900{% else %}border-line bg-card{% endif %}">
+          {{ flash.message }}
+        </p>
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+
+    {% if current_user and chat_project %}
+    <div
+      x-data="{
+        open: false,
+        init() { this.open = localStorage.getItem('agora-chat-open') === '1'; },
+        toggle() {
+          this.open = !this.open;
+          localStorage.setItem('agora-chat-open', this.open ? '1' : '0');
+        }
+      }"
+    >
+      <div
+        class="chat-dock"
+        x-show="open"
+        x-cloak
+        x-transition
+        role="dialog"
+        aria-label="Discussion {{ chat_project.name }}"
+      >
+        <div
+          class="flex min-h-0 flex-1 flex-col"
+          hx-get="{{ u('/chat/dock/' ~ chat_project.id) }}"
+          hx-trigger="load"
+          hx-swap="innerHTML"
+        >
+          {% with project = chat_project, messages = [] %}
+            {% include "partials/chat_dock.html" %}
+          {% endwith %}
+        </div>
+      </div>
+      <button
+        type="button"
+        class="chat-fab"
+        @click="toggle()"
+        :aria-expanded="open.toString()"
+        :aria-label="open ? 'Réduire la discussion' : 'Ouvrir la discussion'"
+      >
+        <span x-show="!open" aria-hidden="true">💬</span>
+        <span x-show="open" aria-hidden="true">✕</span>
+      </button>
+    </div>
+    {% endif %}
+    <style>[x-cloak]{display:none !important}</style>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Nouveau projet · Office Agora{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-lg px-4 py-8">
+  <h1 class="text-xl font-semibold">Nouveau projet</h1>
+  <p class="mt-1 text-sm text-muted">Vous en serez le propriétaire. Invitez les autres ensuite.</p>
+  <form method="post" action="{{ u('/projects') }}" class="mt-6 space-y-4">
+    <div>
+      <label for="name" class="block text-sm font-medium">Nom</label>
+      <input id="name" name="name" required maxlength="160" class="mt-1 w-full rounded border border-line bg-card px-3 py-2 text-sm" />
+    </div>
+    <div>
+      <label for="description" class="block text-sm font-medium">Description <span class="font-normal text-muted">(facultatif)</span></label>
+      <textarea id="description" name="description" rows="3" class="mt-1 w-full rounded border border-line bg-card px-3 py-2 text-sm">{{ description or '' }}</textarea>
+    </div>
+    <div class="flex gap-2">
+      <button type="submit" class="rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover">Créer le projet</button>
+      <a href="{{ u('/') }}" class="rounded px-3 py-2 text-sm text-muted hover:text-ink">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

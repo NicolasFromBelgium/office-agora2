@@ -1,0 +1,136 @@
+<div
+  id="compose-overlay"
+  class="compose-overlay"
+  data-today="{{ today_iso }}"
+  data-kind="task"
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="compose-heading"
+>
+  <div class="compose-dialog">
+    <header class="compose-head">
+      <h2 id="compose-heading" class="text-base font-semibold">Créer</h2>
+      <div class="compose-types" role="tablist" aria-label="Type">
+        <button type="button" class="compose-type compose-type-on" data-compose-tab="task" aria-selected="true">Tâche</button>
+        <button type="button" class="compose-type" data-compose-tab="event" aria-selected="false">Événement</button>
+      </div>
+    </header>
+
+    <form
+      method="post"
+      action="{{ u('/projects/' ~ project.id ~ '/tasks') }}"
+      class="compose-body"
+      data-compose-kind="task"
+    >
+      <div class="compose-main">
+        <label for="compose-title" class="compose-label">Résumé</label>
+        <input
+          id="compose-title"
+          name="title"
+          required
+          maxlength="200"
+          placeholder="Un titre court, comme dans Jira"
+          class="compose-summary"
+        />
+        <label for="compose-description" class="compose-label">Description</label>
+        <textarea
+          id="compose-description"
+          name="description"
+          rows="8"
+          placeholder="Contexte, critères d’acceptation, liens…"
+          class="compose-notes"
+        ></textarea>
+      </div>
+      <aside class="compose-side">
+        <div>
+          <label for="compose-status" class="compose-label">Statut</label>
+          <select id="compose-status" name="status" class="compose-field">
+            {% for status in TASK_STATUSES %}
+            <option value="{{ status.value }}">{{ STATUS_LABELS[status] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="compose-assignee" class="compose-label">Responsable</label>
+          <select id="compose-assignee" name="assignee_id" class="compose-field">
+            <option value="">Non assigné</option>
+            {% for member in project.members %}
+            {% if not member.user.is_bot %}
+            <option value="{{ member.user.id }}">{{ member.user.display_name }}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="compose-due-date" class="compose-label">Échéance</label>
+          <input id="compose-due-date" name="due_date" type="date" class="compose-field" />
+        </div>
+        <div>
+          <label for="compose-due-time" class="compose-label">Heure</label>
+          <input id="compose-due-time" name="due_time" type="time" class="compose-field" />
+        </div>
+      </aside>
+      <div class="compose-foot">
+        <button type="button" class="compose-cancel" data-compose-close>Annuler</button>
+        <button type="submit" class="compose-submit">Créer</button>
+      </div>
+    </form>
+
+    <form
+      method="post"
+      action="{{ u('/projects/' ~ project.id ~ '/events') }}"
+      class="compose-body"
+      data-compose-kind="event"
+      hidden
+    >
+      <div class="compose-main">
+        <label for="event-title" class="compose-label">Résumé</label>
+        <input
+          id="event-title"
+          name="title"
+          required
+          maxlength="200"
+          placeholder="Nom de l’événement"
+          class="compose-summary"
+          disabled
+        />
+        <label for="event-description" class="compose-label">Description</label>
+        <textarea
+          id="event-description"
+          name="description"
+          rows="8"
+          placeholder="Ordre du jour, lieu, liens…"
+          class="compose-notes"
+          disabled
+        ></textarea>
+      </div>
+      <aside class="compose-side">
+        <label class="compose-check">
+          <input type="checkbox" name="all_day" value="on" disabled />
+          Journée entière
+        </label>
+        <div>
+          <label for="event-start-date" class="compose-label">Début</label>
+          <input id="event-start-date" name="start_date" type="date" required class="compose-field" disabled />
+        </div>
+        <div data-compose-timed>
+          <label for="event-start-time" class="compose-label">Heure de début</label>
+          <input id="event-start-time" name="start_time" type="time" class="compose-field" disabled />
+        </div>
+        <div>
+          <label for="event-end-date" class="compose-label">Fin</label>
+          <input id="event-end-date" name="end_date" type="date" class="compose-field" disabled />
+        </div>
+        <div data-compose-timed>
+          <label for="event-end-time" class="compose-label">Heure de fin</label>
+          <input id="event-end-time" name="end_time" type="time" class="compose-field" disabled />
+        </div>
+      </aside>
+      <div class="compose-foot">
+        <button type="button" class="compose-cancel" data-compose-close disabled>Annuler</button>
+        <button type="submit" class="compose-submit" disabled>Créer</button>
+      </div>
+    </form>
+  </div>
+</div>

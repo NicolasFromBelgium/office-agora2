@@ -1,0 +1,36 @@
+<div id="task-comments">
+  {% if comments %}
+  <ul class="mt-3 space-y-2">
+    {% for item in comments %}
+    <li class="rounded border border-line bg-card px-3 py-2">
+      <div class="flex items-baseline justify-between gap-3">
+        <p class="text-sm font-medium">{{ item.author.display_name }}</p>
+        <span class="flex shrink-0 items-center gap-2">
+          <time class="text-xs text-muted" datetime="{{ item.created_at.isoformat() }}">{{ item.created_at|dt }}</time>
+          <form
+            method="post"
+            action="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/comments/' ~ item.id ~ '/delete') }}"
+            hx-post="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/comments/' ~ item.id ~ '/delete') }}"
+            hx-target="#task-comments"
+            hx-swap="outerHTML"
+            hx-confirm="Supprimer ce commentaire ?"
+          >
+            <button type="submit" class="danger-link">Supprimer</button>
+          </form>
+        </span>
+      </div>
+      <div class="mt-1 flex items-start justify-between gap-3">
+        <p class="comment-body text-sm">{{ item.body }}</p>
+        {% set action = '/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/comments/' ~ item.id ~ '/like' %}
+        {% set liked = current_user.id in item.likes|map(attribute='user_id')|list %}
+        {% set count = item.likes|length %}
+        {% set names = item.likes|map(attribute='user')|map(attribute='display_name')|list %}
+        {% include "partials/like_button.html" %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="mt-3 text-sm text-muted">Aucun commentaire pour l’instant.</p>
+  {% endif %}
+</div>

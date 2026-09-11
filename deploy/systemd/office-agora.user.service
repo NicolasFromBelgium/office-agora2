@@ -1,0 +1,19 @@
+[Unit]
+Description=Office Agora (user service, proxied at /office)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/nicolas/projects/Office-Agora
+Environment=APP_ENV=production
+Environment=APP_DEBUG=false
+Environment=ROOT_PATH=/office
+Environment=HOST=127.0.0.1
+Environment=PORT=8088
+Environment=LOG_LEVEL=info
+ExecStart=/home/nicolas/projects/Office-Agora/.venv/bin/python -m agora
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

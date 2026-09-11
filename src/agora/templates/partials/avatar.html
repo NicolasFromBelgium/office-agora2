@@ -1,0 +1,15 @@
+{% set who = who %}
+{% set size = size|default('md') %}
+{% set px = {'xs': 20, 'sm': 26, 'md': 32, 'lg': 36, 'profile': 80}[size] %}
+<span class="avatar avatar-{{ size }}">
+  {% if who.avatar_name %}
+  <img
+    src="{{ u('/avatars/' ~ who.id ~ '/thumb') }}?s=80&amp;v={{ who.avatar_name }}"
+    alt=""
+    width="{{ px }}"
+    height="{{ px }}"
+  />
+  {% else %}
+  <span class="avatar-fallback" aria-hidden="true">{{ who.initial }}</span>
+  {% endif %}
+</span>

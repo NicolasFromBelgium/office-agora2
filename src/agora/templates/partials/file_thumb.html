@@ -1,0 +1,12 @@
+<a
+  href="{{ u('/projects/' ~ project.id ~ '/files/' ~ item.id) }}"
+  class="file-thumb"
+  title="Ouvrir {{ item.original_filename }}"
+>
+  <img
+    src="{{ u('/projects/' ~ project.id ~ '/files/' ~ item.id ~ '/thumb') }}"
+    alt=""
+    width="48"
+    height="48"
+  />
+</a>

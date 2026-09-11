@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} · Agenda{% endblock %}
+{% block content %}
+{% include "projects/_header.html" %}
+<div class="mx-auto max-w-7xl px-4 py-4">
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-2">
+      <a
+        class="agenda-nav"
+        href="{{ u('/projects/' ~ project.id ~ '/agenda') }}?year={{ agenda.prev_year }}&amp;month={{ agenda.prev_month }}"
+        aria-label="Mois précédent"
+      >‹</a>
+      <h2 class="min-w-[12rem] text-center text-lg font-semibold tracking-tight">{{ agenda.label }}</h2>
+      <a
+        class="agenda-nav"
+        href="{{ u('/projects/' ~ project.id ~ '/agenda') }}?year={{ agenda.next_year }}&amp;month={{ agenda.next_month }}"
+        aria-label="Mois suivant"
+      >›</a>
+      <a class="ml-2 text-sm text-muted hover:text-ink" href="{{ u('/projects/' ~ project.id ~ '/agenda') }}">Aujourd’hui</a>
+    </div>
+    <button
+      type="button"
+      class="rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+      onclick="agoraCompose({ kind: 'event', date: '{{ today_iso }}' })"
+    >Créer un événement</button>
+  </div>
+
+  <div class="agenda-grid">
+    {% for label in agenda.weekdays %}
+    <div class="agenda-dow">{{ label }}</div>
+    {% endfor %}
+    {% for week in agenda.weeks %}
+      {% for cell in week %}
+      <div
+        class="agenda-day{% if not cell.in_month %} agenda-day-out{% endif %}{% if cell.is_today %} agenda-day-today{% endif %}"
+      >
+        <div class="agenda-day-head">
+          <button
+            type="button"
+            class="agenda-num"
+            title="Créer le {{ cell.day.isoformat() }}"
+            onclick="agoraCompose({ kind: 'event', date: '{{ cell.day.isoformat() }}' })"
+          >{{ cell.day.day }}</button>
+          <button
+            type="button"
+            class="agenda-add"
+            aria-label="Ajouter le {{ cell.day.isoformat() }}"
+            onclick="agoraCompose({ kind: 'task', date: '{{ cell.day.isoformat() }}' })"
+          >+</button>
+        </div>
+        <ul class="agenda-items">
+          {% for item in cell.items[:4] %}
+          <li>
+            <a
+              href="{{ u(item.href) }}"
+              class="agenda-chip agenda-chip-{{ item.kind }}{% if item.overdue %} agenda-chip-overdue{% endif %}{% if created_event_id and item.kind == 'event' and item.id == created_event_id %} task-just-created{% endif %}"
+              title="{{ item.title }}"
+            >
+              {% if item.time_label %}<span class="agenda-chip-time">{{ item.time_label }}</span> {% endif %}{{ item.title }}
+            </a>
+          </li>
+          {% endfor %}
+          {% if cell.items|length > 4 %}
+          <li class="agenda-more">+{{ cell.items|length - 4 }}</li>
+          {% endif %}
+        </ul>
+      </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+  <p class="mt-3 text-xs text-muted">Cliquez un jour pour un événement, le + pour une tâche avec cette échéance. Les pastilles violettes sont des événements, les cyan des tâches.</p>
+</div>
+{% if created_event_id %}
+<script>
+  history.replaceState({}, "", {{ u("/projects/" ~ project.id ~ "/agenda")|tojson }});
+</script>
+{% endif %}
+{% endblock %}

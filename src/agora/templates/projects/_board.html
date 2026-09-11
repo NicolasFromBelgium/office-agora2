@@ -1,0 +1,42 @@
+<div
+  id="board"
+  class="kanban"
+>
+  {% for status in TASK_STATUSES %}
+  {% set column_tasks = columns.get(status.value, []) %}
+  <section
+    class="kanban-col rounded-xl border border-line bg-white/70 p-2"
+    @dragover.prevent
+    @drop.prevent="
+      if (dragId) {
+        htmx.ajax('POST', '{{ u("/projects/" ~ project.id ~ "/tasks/") }}' + dragId + '/status', {
+          values: { status: '{{ status.value }}', next: '{{ u("/projects/" ~ project.id ~ "/board") }}' },
+          target: '#board',
+          swap: 'outerHTML'
+        });
+        dragId = null;
+      }
+    "
+  >
+    <header class="flex items-center justify-between gap-2 px-1 pb-2">
+      <div class="flex min-w-0 items-center gap-1.5">
+        <h2 class="text-sm font-semibold">{{ STATUS_LABELS[status] }}</h2>
+        <button
+          type="button"
+          class="col-add"
+          aria-label="Ajouter une tâche dans {{ STATUS_LABELS[status] }}"
+          onclick="agoraCompose({ kind: 'task', status: '{{ status.value }}' })"
+        >+</button>
+      </div>
+      <span class="text-xs text-muted">{{ column_tasks|length }}</span>
+    </header>
+    <div class="kanban-col-body space-y-2">
+      {% for task in column_tasks %}
+        {% include "projects/_task_card.html" %}
+      {% else %}
+      <p class="px-1 py-6 text-center text-xs text-muted">Aucune tâche</p>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</div>

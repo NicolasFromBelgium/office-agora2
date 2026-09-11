@@ -1,0 +1,20 @@
+<div id="chat-log" class="chat-log">
+  {% for message in messages %}
+  {% set mine = current_user and message.author_id == current_user.id %}
+  {% set bot = message.author and message.author.is_bot %}
+  <article class="chat-row {% if mine %}chat-row-mine{% endif %}">
+    {% if not mine %}
+    <span class="chat-avatar {% if bot %}chat-avatar-bot{% endif %}" title="{{ message.author.display_name }}">{% with who = message.author, size = 'sm' %}{% include "partials/avatar.html" %}{% endwith %}</span>
+    {% endif %}
+    <div class="chat-bubble {% if mine %}chat-bubble-mine{% elif bot %}chat-bubble-bot{% else %}chat-bubble-them{% endif %}">
+      {% if not mine %}
+      <p class="chat-author">{{ message.author.display_name }}</p>
+      {% endif %}
+      <p class="chat-body">{{ message.body }}</p>
+      <time class="chat-time" datetime="{{ message.created_at.isoformat() }}">{{ message.created_at|hm }}</time>
+    </div>
+  </article>
+  {% else %}
+  <p class="chat-empty">Pas encore de messages. Lancez la discussion.</p>
+  {% endfor %}
+</div>

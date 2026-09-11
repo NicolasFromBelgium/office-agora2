@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} · Fichiers{% endblock %}
+{% block content %}
+{% include "projects/_header.html" %}
+<div class="mx-auto max-w-7xl px-4 py-4">
+  <form method="post" action="{{ u('/projects/' ~ project.id ~ '/files') }}" enctype="multipart/form-data" class="flex flex-wrap items-end gap-2">
+    <div>
+      <label for="file" class="block text-xs text-muted">Joindre un fichier</label>
+      <input id="file" name="file" type="file" required class="mt-1 text-sm" />
+    </div>
+    <button type="submit" class="rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover">Envoyer</button>
+    <p class="text-xs text-muted">Max {{ (settings.max_upload_bytes / 1024 / 1024)|round(1) }} Mo. Types : {{ settings.allowed_upload_extensions|sort|join(', ') }}.</p>
+  </form>
+
+  {% if attachments %}
+  <ul class="mt-4 divide-y divide-line rounded border border-line bg-card">
+    {% for item in attachments %}
+    <li class="flex items-center justify-between gap-3 px-4 py-3">
+      <div class="flex min-w-0 items-center gap-3">
+        {% include "partials/file_thumb.html" %}
+        <div class="min-w-0">
+          <a href="{{ u('/projects/' ~ project.id ~ '/files/' ~ item.id) }}" class="font-medium hover:text-accent">{{ item.original_filename }}</a>
+          <p class="text-xs text-muted">
+            {{ item.uploader.display_name }} · {{ item.created_at|dt }}
+            {% if item.task %} · {{ item.task.title }}{% endif %}
+          </p>
+        </div>
+      </div>
+      <span class="flex items-center gap-3">
+        <a href="{{ u('/projects/' ~ project.id ~ '/files/' ~ item.id) }}" class="text-sm text-accent">Ouvrir</a>
+        <a href="{{ u('/projects/' ~ project.id ~ '/files/' ~ item.id ~ '/download') }}" class="text-sm text-muted hover:text-accent">Télécharger</a>
+        <form
+          method="post"
+          action="{{ u('/projects/' ~ project.id ~ '/files/' ~ item.id ~ '/delete') }}"
+          onsubmit="return confirm('Supprimer ce fichier ?');"
+        >
+          <input type="hidden" name="next" value="/projects/{{ project.id }}/files" />
+          <button type="submit" class="danger-link">Supprimer</button>
+        </form>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="mt-6 rounded border border-dashed border-line bg-card px-4 py-10 text-center">
+    <p class="text-sm text-muted">Aucun fichier pour l’instant.</p>
+    <p class="mt-1 text-xs text-muted">Envoyez un document pour le garder avec ce projet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% if crew %}
+<section class="crew" aria-labelledby="crew-heading">
+  <div class="flex flex-wrap items-end justify-between gap-2">
+    <div>
+      <h2 id="crew-heading" class="text-sm font-semibold">Équipe & élan</h2>
+      {% if elan_nudge %}<p class="mt-0.5 text-sm text-muted">{{ elan_nudge }}</p>{% endif %}
+    </div>
+    <p class="text-xs text-muted">Cette semaine · créer +3 · terminer +5 · message +1</p>
+  </div>
+  <ul class="crew-grid">
+    {% for member in crew %}
+    <li class="crew-card">
+      <div class="flex items-center gap-2">
+        <span class="relative">
+          {% with who = member.user, size = 'lg' %}{% include "partials/avatar.html" %}{% endwith %}
+          <span class="crew-dot {% if member.online %}crew-dot-on{% endif %}" aria-hidden="true"></span>
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium">{{ member.user.display_name }}</p>
+          <p class="truncate text-xs text-muted">
+            {% if member.online %}En ligne{% else %}Hors ligne{% endif %}
+            {% if member.doing_titles %} · {{ member.doing_titles[0] }}{% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="mt-2 flex items-baseline justify-between gap-2">
+        <span class="text-lg font-semibold text-accent">{{ member.points }}</span>
+        <span class="text-xs text-muted">{{ member.created }} créées · {{ member.completed }} terminées · {{ member.messages }} msg</span>
+      </div>
+      {% set max_pts = crew[0].points if crew[0].points > 0 else 1 %}
+      <div class="crew-bar" aria-hidden="true">
+        <span style="width: {{ (member.points / max_pts * 100)|int }}%"></span>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

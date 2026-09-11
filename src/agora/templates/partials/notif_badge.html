@@ -1,0 +1,12 @@
+<span
+  id="notif-badge"
+  class="notif-badge"
+  hx-get="{{ u('/notifications/badge') }}"
+  hx-trigger="every 30s"
+  hx-swap="outerHTML"
+>
+  {% if unread_count|default(0) %}
+  <span class="notif-dot" aria-hidden="true"></span>
+  <span class="sr-only">{{ unread_count }} nouvelle{% if unread_count > 1 %}s{% endif %}</span>
+  {% endif %}
+</span>

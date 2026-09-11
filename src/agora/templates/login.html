@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Connexion · Office Agora{% endblock %}
+{% block content %}
+<div class="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4">
+  <div class="mb-8 flex items-center gap-2">
+    <span class="brand-mark inline-flex h-8 w-8 items-center justify-center rounded text-xs font-semibold text-white">OA</span>
+    <span class="text-lg font-semibold tracking-tight">Office Agora</span>
+  </div>
+  <h1 class="text-xl font-semibold">Connexion</h1>
+  <p class="mt-1 text-sm text-muted">Espace sur invitation. Demandez un compte au propriétaire d’un projet.</p>
+  <form method="post" action="{{ u('/login') }}" class="mt-6 space-y-4">
+    <input type="hidden" name="next" value="{{ next or '/' }}" />
+    <div>
+      <label for="email" class="block text-sm font-medium">E-mail</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        autocomplete="username"
+        required
+        value="{{ email or '' }}"
+        class="mt-1 w-full rounded border border-line bg-card px-3 py-2 text-sm focus-visible:outline-none"
+      />
+    </div>
+    <div>
+      <label for="password" class="block text-sm font-medium">Mot de passe</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        required
+        class="mt-1 w-full rounded border border-line bg-card px-3 py-2 text-sm focus-visible:outline-none"
+      />
+    </div>
+    <button type="submit" class="w-full rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover">
+      Se connecter
+    </button>
+  </form>
+</div>
+{% endblock %}

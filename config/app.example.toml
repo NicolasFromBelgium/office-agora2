@@ -1,0 +1,5 @@
+# Copy to config/app.toml for machine-local overrides (gitignored).
+# Environment variables in .env take precedence for APP_* settings.
+
+[app]
+name = "office-agora"

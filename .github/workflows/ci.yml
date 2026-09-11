@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install the project and test tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Lint
+        run: python -m ruff check src tests
+
+      - name: Run test suite
+        env:
+          APP_ENV: test
+          APP_DEBUG: "false"
+          LOG_LEVEL: info
+          SECRET_KEY: ci-secret
+        run: |
+          python -m pytest \
+            --cov=agora \
+            --cov-report=term-missing \
+            --junitxml=reports/junit.xml
+
+      - name: Write Actions summary
+        if: always()
+        run: |
+          {
+            echo "## CI health"
+            echo
+            echo "- Workflow: \`${{ github.workflow }}\`"
+            echo "- Repository: \`${{ github.repository }}\`"
+            echo "- Python: \`${{ matrix.python-version }}\`"
+            echo "- Look for test: \`test_ci_pipeline_runs_on_github_actions\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-python-${{ matrix.python-version }}
+          path: reports/junit.xml
+          if-no-files-found: warn

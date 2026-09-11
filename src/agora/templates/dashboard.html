@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Accueil · Office Agora{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-7xl px-4 py-8">
+  <p class="text-sm text-muted">Connecté en tant que</p>
+  <h1 class="mt-1 text-2xl font-semibold tracking-tight">{{ current_user.display_name }}</h1>
+  <p class="text-sm text-muted">{{ current_user.email }}</p>
+  {% if chat_project %}
+  <p class="mt-3 text-sm text-muted">Grok est dans la discussion {{ chat_project.name }} — bouton en bas à droite, ou écrivez @Grok.</p>
+  {% endif %}
+
+  {% if today_items %}
+  <section class="mt-8" aria-labelledby="today-heading">
+    <h2 id="today-heading" class="text-sm font-semibold">Aujourd’hui</h2>
+    <ul class="mt-3 space-y-3">
+      {% for item in today_items %}
+      <li>
+        <a href="{{ u(item.href) }}" class="block rounded-xl border border-line bg-card p-4 shadow-sm hover:border-accent">
+          <p class="text-xs font-semibold uppercase tracking-wide text-live">
+            {% if item.kind == 'event' %}Événement · {% else %}Tâche · {% endif %}{{ item.when|due }}
+          </p>
+          <p class="mt-1 text-lg font-semibold">{{ item.title }}</p>
+          {% if item.description %}
+          <p class="mt-2 whitespace-pre-line text-sm text-muted">{{ item.description }}</p>
+          {% endif %}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if last_project %}
+  <a
+    href="{{ u('/projects/' ~ last_project.id ~ '/board') }}"
+    class="mt-6 inline-flex items-center rounded bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+  >
+    Continuer {{ last_project.name }}
+  </a>
+  {% endif %}
+
+  <div class="mt-8">
+    {% include "partials/crew.html" %}
+  </div>
+
+  <section class="mt-8" aria-labelledby="online-heading">
+    <h2 id="online-heading" class="text-sm font-semibold">Qui est en ligne</h2>
+    <ul class="mt-2 flex flex-wrap gap-2">
+      {% for person in online_users %}
+      <li class="inline-flex items-center gap-2 rounded-full border border-line bg-card px-2.5 py-1 text-sm">
+        <span class="h-2 w-2 rounded-full bg-live" aria-hidden="true"></span>
+        {{ person.display_name }}
+      </li>
+      {% else %}
+      <li class="text-sm text-muted">Vous êtes seul·e pour le moment.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="mt-10" aria-labelledby="projects-heading">
+    <div class="flex items-center justify-between gap-3">
+      <h2 id="projects-heading" class="text-sm font-semibold">Projets</h2>
+      <a href="{{ u('/projects/new') }}" class="rounded border border-line bg-card px-3 py-1.5 text-sm hover:border-accent">
+        Nouveau projet
+      </a>
+    </div>
+    {% if projects %}
+    <ul class="mt-3 divide-y divide-line rounded border border-line bg-card">
+      {% for item in projects %}
+      <li>
+        <a href="{{ u('/projects/' ~ item.id ~ '/board') }}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-paper">
+          <span>
+            <span class="block font-medium">{{ item.name }}</span>
+            {% if item.description %}<span class="text-sm text-muted">{{ item.description }}</span>{% endif %}
+          </span>
+          <span class="text-xs text-muted">{{ item.members|length }} membres</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="mt-3 rounded border border-dashed border-line bg-card px-4 py-10 text-center">
+      <p class="text-sm text-muted">Aucun projet pour l’instant.</p>
+      <a href="{{ u('/projects/new') }}" class="mt-3 inline-flex rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover">
+        Créer un projet
+      </a>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

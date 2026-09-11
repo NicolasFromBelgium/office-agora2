@@ -1,0 +1,41 @@
+<article
+  class="rounded-lg border border-line bg-card p-3 shadow-[0_1px_0_rgba(124,58,237,0.08)]{% if created_id is defined and created_id == task.id %} task-just-created{% endif %}"
+  draggable="true"
+  data-task-id="{{ task.id }}"
+  @dragstart="dragId = '{{ task.id }}'"
+>
+  {% if task.due_at %}
+  <p class="due-chip{% if task.due_at|overdue(task.status) %} due-overdue{% endif %}">{{ task.due_at|due }}</p>
+  {% endif %}
+  <a href="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id) }}" class="block font-medium hover:text-accent">{{ task.title }}</a>
+  <div class="mt-2 flex items-center justify-between gap-2">
+    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-paper text-[11px] font-medium" title="{{ task.assignee.display_name if task.assignee else 'Non assigné' }}">
+      {{ task.assignee.initial if task.assignee else "—" }}
+    </span>
+    <span class="flex items-center gap-2">
+      <span class="text-xs text-muted">
+        {{ task.files|length }} fichier{% if task.files|length != 1 %}s{% endif %}
+        · {{ task.comments|length }} comm.
+      </span>
+      {% set action = '/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/like' %}
+      {% set liked = current_user.id in task.likes|map(attribute='user_id')|list %}
+      {% set count = task.likes|length %}
+      {% set names = task.likes|map(attribute='user')|map(attribute='display_name')|list %}
+      {% include "partials/like_button.html" %}
+    </span>
+  </div>
+  <form method="post" action="{{ u('/projects/' ~ project.id ~ '/tasks/' ~ task.id ~ '/status') }}" class="mt-2">
+    <input type="hidden" name="next" value="{{ request.url.path }}" />
+    <label class="sr-only" for="status-{{ task.id }}">Statut</label>
+    <select
+      id="status-{{ task.id }}"
+      name="status"
+      class="w-full rounded border border-line bg-paper px-1.5 py-1 text-xs"
+      onchange="this.form.requestSubmit()"
+    >
+      {% for status in TASK_STATUSES %}
+      <option value="{{ status.value }}" {% if task.status == status.value %}selected{% endif %}>{{ STATUS_LABELS[status] }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</article>

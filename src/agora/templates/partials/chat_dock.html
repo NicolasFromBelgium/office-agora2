@@ -1,0 +1,44 @@
+<div class="chat-dock-inner">
+  <header class="chat-dock-head">
+    <div>
+      <p class="chat-dock-kicker">Discussion</p>
+      <p class="chat-dock-title">{{ project.name }}</p>
+    </div>
+    {% if in_dock|default(true) %}
+    <button type="button" class="chat-dock-close" @click="open = false" aria-label="Réduire la discussion">✕</button>
+    {% endif %}
+  </header>
+  <div
+    class="chat-dock-body"
+    hx-get="{{ u('/projects/' ~ project.id ~ '/chat/messages') }}"
+    hx-trigger="load, every 5s"
+    hx-swap="innerHTML"
+    id="chat-dock-scroll"
+  >
+    {% include "partials/messages.html" %}
+  </div>
+  <form
+    class="chat-dock-compose"
+    method="post"
+    action="{{ u('/projects/' ~ project.id ~ '/chat') }}"
+    hx-post="{{ u('/projects/' ~ project.id ~ '/chat') }}"
+    hx-target="#chat-log"
+    hx-swap="outerHTML"
+    hx-on::after-request="if(event.detail.successful) { this.reset(); const box=document.getElementById('chat-dock-scroll'); if(box) box.scrollTop = box.scrollHeight; }"
+  >
+    <label class="sr-only" for="dock-body">Message</label>
+    <textarea id="dock-body" name="body" rows="2" maxlength="4000" placeholder="Écrire un message… ou @Grok"></textarea>
+    <div class="chat-dock-actions">
+      <button type="submit" class="chat-send">Envoyer</button>
+      <button
+        type="submit"
+        class="chat-send chat-send-grok"
+        formaction="{{ u('/projects/' ~ project.id ~ '/assistant') }}"
+        formmethod="post"
+        hx-post="{{ u('/projects/' ~ project.id ~ '/assistant') }}"
+        hx-target="#chat-log"
+        hx-swap="outerHTML"
+      >Grok</button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,18 @@
+{# i18n: presence.online #}
+<div
+  id="presence"
+  class="flex items-center gap-2"
+  hx-post="{{ u('/presence/heartbeat') }}"
+  hx-trigger="load, every 15s"
+  hx-swap="outerHTML"
+>
+  <span class="sr-only">Qui est en ligne</span>
+  {% for person in online_users %}
+  <span class="inline-flex items-center gap-1 text-xs text-muted" title="{{ person.display_name }} est en ligne">
+    <span class="h-2 w-2 rounded-full bg-live" aria-hidden="true"></span>
+    <span class="hidden md:inline">{{ person.display_name.split(' ')[0] }}</span>
+  </span>
+  {% else %}
+  <span class="text-xs text-muted">Personne d’autre en ligne</span>
+  {% endfor %}
+</div>
