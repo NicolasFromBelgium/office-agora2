@@ -35,8 +35,8 @@ SEED_USERS: tuple[tuple[str, str], ...] = (
     ("laurentleyssens1@gmail.com", "Laurent Leyssens"),
 )
 
-SEED_PROJECT_NAME = "Leyssens Immo SRL"
-LEGACY_PROJECT_NAMES = ("Leyssens",)
+SEED_PROJECT_NAME = "Leyssens Immo SRL 2026"
+LEGACY_PROJECT_NAMES = ("Leyssens", "Leyssens Immo SRL")
 SEED_PROJECT_DESCRIPTION = ""
 
 OWNER_EMAIL = "leyssens.nicolas@gmail.com"

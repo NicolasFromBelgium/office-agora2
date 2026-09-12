@@ -19,6 +19,7 @@ from agora.settings import Settings, load_settings
 from agora.web.deps import NotAuthenticated, NotFound, login_redirect
 from agora.web.routes import (
     agenda,
+    agent,
     assistant,
     auth,
     chat,
@@ -116,6 +117,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth.router)
     app.include_router(dashboard.router)
     app.include_router(projects.router)
+    app.include_router(agent.router)
     app.include_router(tasks.router)
     app.include_router(agenda.router)
     app.include_router(comments.router)

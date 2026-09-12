@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} · AGENT{% endblock %}
+{% block content %}
+{% include "projects/_header.html" %}
+<div class="mx-auto max-w-7xl px-4 py-4">
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <nav class="flex flex-wrap gap-1" aria-label="AGENT">
+      {% set subs = [
+        ('brut', 'Données brutes', u('/projects/' ~ project.id ~ '/agent/brut')),
+        ('analyse', 'Analyse', u('/projects/' ~ project.id ~ '/agent/analyse')),
+        ('taches', 'Tâches', u('/projects/' ~ project.id ~ '/agent/taches')),
+      ] %}
+      {% for key, label, href in subs %}
+      <a
+        href="{{ href }}"
+        class="rounded-full border px-3 py-1.5 text-sm {% if agent_sub == key %}border-accent bg-accent text-white{% else %}border-line text-muted hover:text-ink{% endif %}"
+        {% if agent_sub == key %}aria-current="page"{% endif %}
+      >{{ label }}</a>
+      {% endfor %}
+    </nav>
+    <p class="text-sm">
+      Bot
+      {% if bot_status.running %}
+      <span class="rounded-full bg-live/15 px-2 py-0.5 text-live">en cours{% if bot_status.bots %} ({{ bot_status.bots|join(', ') }}){% endif %}</span>
+      {% else %}
+      <span class="rounded-full border border-line px-2 py-0.5 text-muted">arrêté</span>
+      {% endif %}
+    </p>
+  </div>
+
+  {% if agent_sub == 'brut' %}
+  <form method="get" class="mb-4 grid gap-2 md:grid-cols-6">
+    <label class="text-xs text-muted">Type
+      <select name="listing_type" class="mt-1 w-full rounded border border-line bg-card px-2 py-1.5 text-sm">
+        <option value="" {% if not filters.listing_type %}selected{% endif %}>Tous</option>
+        <option value="sale" {% if filters.listing_type == 'sale' %}selected{% endif %}>Vente</option>
+        <option value="rent" {% if filters.listing_type == 'rent' %}selected{% endif %}>Location</option>
+      </select>
+    </label>
+    <label class="text-xs text-muted">Bien
+      <select name="property_type" class="mt-1 w-full rounded border border-line bg-card px-2 py-1.5 text-sm">
+        <option value="">Tous</option>
+        {% for t in ['apartment','house','land','studio','office','garage'] %}
+        <option value="{{ t }}" {% if filters.property_type == t %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="text-xs text-muted">Ville
+      <input name="city" value="{{ filters.city }}" class="mt-1 w-full rounded border border-line bg-card px-2 py-1.5 text-sm" />
+    </label>
+    <label class="text-xs text-muted">CP
+      <input name="postal_code" value="{{ filters.postal_code }}" class="mt-1 w-full rounded border border-line bg-card px-2 py-1.5 text-sm" />
+    </label>
+    <label class="text-xs text-muted">Recherche
+      <input name="q" value="{{ filters.q }}" class="mt-1 w-full rounded border border-line bg-card px-2 py-1.5 text-sm" />
+    </label>
+    <label class="text-xs text-muted">Tri
+      <select name="sort" class="mt-1 w-full rounded border border-line bg-card px-2 py-1.5 text-sm">
+        {% for key, label in [('last_seen','Récent'),('price','Prix'),('surface_m2','Surface'),('city','Ville'),('photo_count','Photos')] %}
+        <option value="{{ key }}" {% if filters.sort == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <input type="hidden" name="direction" value="{{ filters.direction }}" />
+    <div class="md:col-span-6">
+      <button class="rounded bg-accent px-3 py-1.5 text-sm text-white hover:bg-accent-hover" type="submit">Filtrer</button>
+      <span class="ml-2 text-sm text-muted">{{ total }} biens</span>
+    </div>
+  </form>
+  <div class="overflow-x-auto rounded border border-line bg-card">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-line text-xs text-muted">
+        <tr>
+          <th class="px-2 py-2">Photo</th>
+          <th class="px-2 py-2">Bien</th>
+          <th class="px-2 py-2">Prix</th>
+          <th class="px-2 py-2">m²</th>
+          <th class="px-2 py-2">Ville</th>
+          <th class="px-2 py-2">PEB</th>
+          <th class="px-2 py-2">Contact</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line">
+        {% for row in rows %}
+        <tr>
+          <td class="px-2 py-2">
+            {% if row.photo_cover %}
+            <img src="{{ row.photo_cover }}" alt="" class="h-12 w-16 rounded object-cover" />
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="px-2 py-2">
+            <div class="font-medium">{{ row.listing_type or '' }} {{ row.property_type or '' }}</div>
+            <a class="text-xs text-accent" href="{{ row.url }}" target="_blank" rel="noopener">{{ row.title or row.url }}</a>
+          </td>
+          <td class="px-2 py-2">{{ row.price or '—' }}</td>
+          <td class="px-2 py-2">{{ row.surface_m2 or '—' }}</td>
+          <td class="px-2 py-2">{{ row.city or '' }} {{ row.postal_code or '' }}</td>
+          <td class="px-2 py-2">{{ row.peb or '—' }}</td>
+          <td class="px-2 py-2 text-xs">
+            {{ row.contact_name or row.agency or '—' }}<br />
+            {{ row.contact_phone or '' }}<br />
+            {{ row.contact_email or '' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td class="px-3 py-6 text-muted" colspan="7">Aucune donnée brute pour l’instant. Lance le crawler immo-be.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if agent_sub == 'analyse' %}
+  <p class="mb-3 text-sm text-muted">
+    Scores et critiques <strong>mathématiques</strong> (médiane commune, PEB, rendement locatif estimé).
+    La colonne Qwen restera vide tant que le modèle n’est pas branché.
+  </p>
+  <form method="get" class="mb-4 flex flex-wrap gap-2">
+    <select name="listing_type" class="rounded border border-line bg-card px-2 py-1.5 text-sm">
+      <option value="">Vente + location</option>
+      <option value="sale" {% if filters.listing_type == 'sale' %}selected{% endif %}>Vente</option>
+      <option value="rent" {% if filters.listing_type == 'rent' %}selected{% endif %}>Location</option>
+    </select>
+    <input name="city" value="{{ filters.city }}" placeholder="Ville" class="rounded border border-line bg-card px-2 py-1.5 text-sm" />
+    <button class="rounded border border-line px-3 py-1.5 text-sm" type="submit">Filtrer</button>
+  </form>
+  <div class="overflow-x-auto rounded border border-line bg-card">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-line text-xs text-muted">
+        <tr>
+          <th class="px-2 py-2">Score maths</th>
+          <th class="px-2 py-2">Qwen</th>
+          <th class="px-2 py-2">Bien</th>
+          <th class="px-2 py-2">Yield est.</th>
+          <th class="px-2 py-2">Critique</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line">
+        {% for row in ranked %}
+        <tr>
+          <td class="px-2 py-2 font-semibold">{{ row.score }} <span class="text-xs font-normal text-muted">{{ row.score_label }}</span></td>
+          <td class="px-2 py-2 text-muted text-xs">en attente</td>
+          <td class="px-2 py-2">
+            {{ row.city }} {{ row.postal_code }} · {{ row.listing_type }} {{ row.property_type }}<br />
+            <span class="text-xs">{{ row.price }} € · {{ row.surface_m2 }} m²</span>
+          </td>
+          <td class="px-2 py-2">{% if row.estimated_yield %}{{ (row.estimated_yield * 100)|round(1) }} %{% else %}—{% endif %}</td>
+          <td class="px-2 py-2 text-xs">{{ row.critique }}</td>
+        </tr>
+        {% else %}
+        <tr><td class="px-3 py-6 text-muted" colspan="5">Pas encore de biens à scorer.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if agent_sub == 'taches' %}
+  <p class="mb-3 text-sm text-muted">
+    Tâches <strong>heuristiques</strong> (règles maths). Les préconisations Qwen arriveront dans cet onglet ensuite.
+  </p>
+  <ul class="space-y-2">
+    {% for task in tasks %}
+    <li class="rounded border border-line bg-card px-4 py-3">
+      <div class="text-xs uppercase tracking-wide text-muted">{{ task.source }}</div>
+      <div class="font-medium">{{ task.title }}</div>
+      <p class="mt-1 text-sm text-muted">{{ task.description }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endblock %}

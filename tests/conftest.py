@@ -40,6 +40,8 @@ def settings(tmp_path: Path) -> Settings:
         root_path="",
         xai_api_key="",
         xai_model="grok-4.6",
+        crawl_db_path=tmp_path / "crawl.db",
+        crawl_state_path=tmp_path / "bot-state.json",
     )
 
 

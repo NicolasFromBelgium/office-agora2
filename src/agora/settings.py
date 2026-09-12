@@ -68,6 +68,8 @@ class Settings:
     root_path: str
     xai_api_key: str
     xai_model: str
+    crawl_db_path: Path
+    crawl_state_path: Path
 
     @property
     def database_url(self) -> str:
@@ -101,4 +103,12 @@ def load_settings(env_file: Path | None = None) -> Settings:
         root_path=os.environ.get("ROOT_PATH", "").rstrip("/"),
         xai_api_key=os.environ.get("XAI_API_KEY", ""),
         xai_model=os.environ.get("XAI_MODEL", "grok-4.6"),
+        crawl_db_path=_as_path(
+            os.environ.get("CRAWL_DB_PATH", ""),
+            Path("/var/www/chymera-systems.eu/data/crawl.db"),
+        ),
+        crawl_state_path=_as_path(
+            os.environ.get("CRAWL_STATE_PATH", ""),
+            Path("/var/www/chymera-systems.eu/data/bot-state.json"),
+        ),
     )
